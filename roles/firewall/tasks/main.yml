@@ -1,0 +1,10 @@
+---
+# roles/firewall/tasks/main.yml
+- name: Allow SSH & HTTP/HTTPS
+  ufw:
+    rule: allow
+    name: "{{ item }}"
+    state: enabled
+  with_items:
+    - OpenSSH
+    - Nginx Full

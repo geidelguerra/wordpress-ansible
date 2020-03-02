@@ -1,0 +1,15 @@
+---
+- name: Config
+  hosts: all
+  become: true
+  become_user: root
+  become_method: sudo
+  gather_facts: no
+  
+  roles:
+    - common
+    - firewall
+    - php
+    - mariadb
+    - nginx
+    - certificate

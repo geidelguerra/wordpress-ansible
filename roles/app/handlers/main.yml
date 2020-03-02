@@ -1,0 +1,3 @@
+---
+- import_tasks: ../nginx/handlers/main.yml
+- import_tasks: ../php/handlers/main.yml

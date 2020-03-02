@@ -1,0 +1,17 @@
+---
+# roles/common/tasks/main.yml
+- name: Install Python pip
+  apt:
+    name: python-pip
+    state: present
+
+- name: Install git
+  apt:
+    name: git
+    state: present
+
+- name: Install pymysql
+  pip:
+    name:
+      - pymysql
+    state: present

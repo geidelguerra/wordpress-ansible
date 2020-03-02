@@ -1,0 +1,93 @@
+---
+# roles/app/tasks/main.yml
+- name: Download Wordpress
+  get_url:
+    url: https://wordpress.org/latest.tar.gz
+    dest: /tmp/wordpress.tar.gz
+
+- name: Extract Wordpress
+  unarchive:
+    src: /tmp/wordpress.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: Copy extracted Wordpress to working dir
+  copy:
+    src: /tmp/wordpress/
+    dest: "{{ working_dir }}"
+    remote_src: yes
+
+- name: Remove temp files
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /tmp/wordpress/
+    - /tmp/wordpress.tar.gz
+
+- name: Fetch random salts for Wordpress config
+  uri:
+    url: https://api.wordpress.org/secret-key/1.1/salt/
+    return_content: yes
+  register: wp_salt_task
+  become: no
+
+- name: Generate database password
+  set_fact:
+    db_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
+
+- name: Copy Wordpress config file
+  template:
+    src: wp-config.php.j2
+    dest: "{{ working_dir }}/wp-config.php"
+
+- name: Change ownership of WordPress installation
+  file:
+    path: "{{ working_dir }}"
+    owner: "{{ http_user }}"
+    group: "{{ http_user }}"
+    state: directory
+    recurse: yes
+
+- name: Create database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create database user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    host: "{{ db_host }}"
+    priv: "{{ db_name }}.*:ALL"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Check if certificate already exists
+  stat:
+    path: "{{ ssl_certificate }}"
+  register: certificate_exists_task
+
+- name: Generate certificate
+  shell: "certbot certonly --nginx -n --agree-tos -m {{ ssl_email_address }} -d {{ http_domain }}"
+  when: certificate_exists_task.stat.exists == False
+  notify:
+    - Restart Nginx
+
+- name: Copy PHP FPM pool config file
+  template:
+    src: php-fpm-pool.conf.j2
+    dest: "/etc/php/{{ php_version }}/fpm/pool.d/{{ http_domain}}.conf"
+  notify:
+    - Restart PHP
+
+- name: Copy Nginx config file
+  template:
+    src: nginx.conf.j2
+    dest: "/etc/nginx/sites-enabled/{{ http_domain }}.conf"
+    owner: "{{ system_user }}"
+    group: "{{ system_user }}"
+    mode: 0644
+  notify:
+    - Restart Nginx

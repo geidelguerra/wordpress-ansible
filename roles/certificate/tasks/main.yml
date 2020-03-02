@@ -1,0 +1,14 @@
+---
+# roles/certbot/tasks/main.yml
+- name: Add certbot repo
+  apt_repository:
+    repo: ppa:certbot/certbot
+    state: present
+
+- name: Install certbot
+  apt:
+    pkg:
+      - certbot
+      - python-certbot-nginx
+    state: present
+    update_cache: true

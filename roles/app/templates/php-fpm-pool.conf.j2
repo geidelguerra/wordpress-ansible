@@ -1,0 +1,14 @@
+[{{ http_domain }}]
+
+user = {{ http_user }}
+group = {{ http_user }}
+
+listen = /run/php/php{{ php_version }}-fpm-{{ http_domain }}.sock
+listen.owner = {{ http_user }}
+listen.group = {{ http_user }}
+
+pm = dynamic
+pm.max_children = 5
+pm.start_servers = 2
+pm.min_spare_servers = 1
+pm.max_spare_servers = 3

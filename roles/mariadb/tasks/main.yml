@@ -1,0 +1,48 @@
+---
+# roles/mariadb/tasks/main.yml
+- name: Download MariaDB setup
+  get_url:
+    url: https://downloads.mariadb.com/MariaDB/mariadb_repo_setup
+    dest: /tmp/mariadb_repo_setup
+  become: false
+  become_method: sudo
+  register: download_mariadb_setup_task
+
+- name: Run MariaDB setup
+  command: bash /tmp/mariadb_repo_setup
+  when: download_mariadb_setup_task is changed
+
+- name: Install MariaDB
+  apt:
+    pkg:
+      - mariadb-server
+    state: present
+
+- name: Check if ~/.my.cnf exists
+  stat:
+    path: ~/.my.cnf
+  register: check_root_cnf_file_task
+
+- name: Create root password
+  set_fact:
+    db_root_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=32') }}"
+  when: check_root_cnf_file_task.stat.exists == False
+
+- name: Set database root user
+  mysql_user:
+    name: root
+    password: "{{ db_root_password }}"
+    check_implicit_admin: yes
+    priv: "*.*:ALL,GRANT"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  when: check_root_cnf_file_task.stat.exists == False 
+
+- name: Create ~/.my.cnf file
+  template:
+    src: my.cnf.j2
+    dest: ~/.my.cnf
+    owner: root
+    group: root
+    mode: 0600
+  when: check_root_cnf_file_task.stat.exists == False

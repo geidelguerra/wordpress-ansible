@@ -1,0 +1,26 @@
+# PHP
+php_version: 7.4
+
+# HTTP
+http_domain: example.com
+
+# SSL Certificate
+ssl_certificate: "/etc/letsencrypt/live/{{ http_domain }}/fullchain.pem"
+ssl_certificate_key: "/etc/letsencrypt/live/{{ http_domain }}/privkey.pem"
+ssl_email_address: admin@example.com
+
+# Dir
+working_dir: "/srv/{{ http_domain }}"
+
+# Database
+db_name: "{{ http_domain | regex_replace('\\.|-', '_') }}"
+db_user: "{{ http_domain | regex_replace('\\.|-', '_') }}"
+db_host: localhost
+db_password:
+
+# Wordpress
+wp_use_themes: 'false'
+
+# System
+system_user: root
+http_user: www-data

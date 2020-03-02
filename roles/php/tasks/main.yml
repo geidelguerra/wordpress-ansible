@@ -1,0 +1,15 @@
+---
+# roles/php/tasks/main.yml
+- name: Add PHP repository
+  apt_repository:
+    repo: ppa:ondrej/php
+    state: present
+
+- name: Install PHP
+  apt:
+    pkg:
+      - "php{{ php_version }}"
+      - "php{{ php_version }}-fpm"
+      - "php{{ php_version }}-mysql"
+    state: present
+    update_cache: true

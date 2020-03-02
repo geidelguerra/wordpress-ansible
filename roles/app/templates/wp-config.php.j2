@@ -1,0 +1,35 @@
+<?php
+
+// Database
+define('DB_NAME', '{{ db_name }}');
+define('DB_USER', '{{ db_user }}');
+define('DB_PASSWORD', '{{ db_password }}');
+define('DB_HOST', '{{ db_host|default('localhost') }}');
+define('DB_CHARSET', {{ db_charset|default('utf8mb4') }});
+define('DB_COLLATE', {{ db_collate|default('') }});
+
+$table_prefix = '{{ db_table_prefix|default('wp_') }}';
+
+// Authentication unique keys and salts
+{{ wp_salt_task.content }}
+
+// Debuging
+define('WP_DEBUG', {{ wp_debug|default('false') }});
+
+// Cron jobs
+define('DISABLE_WP_CRON', {{ wp_disable_cron|default('true') }});
+
+// Automatic updates
+define('AUTOMATIC_UPDATER_DISABLED', {{ wp_auto_update|default('false') }});
+
+// Automatic update for core components
+define('WP_AUTO_UPDATE_CORE', {{ wp_core_auto_update|default('false') }});
+
+// Disable frontend theme
+define('WP_USE_THEMES', {{ wp_use_themes|default('true') }});
+
+if (!defined( 'ABSPATH')) {
+	define('ABSPATH', dirname( __FILE__) . '/');
+}
+
+require_once(ABSPATH . 'wp-settings.php');
